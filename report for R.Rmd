@@ -1,0 +1,90 @@
+---
+title: "Report for Rmarkdown"
+author: "Matt"
+date: "6-12-2016"
+output:
+  html_document:
+    fig_height: 4.5
+    fig_width: 7
+    highlight: tango
+    number_sections: yes
+    theme: readable
+    toc: yes
+  pdf_document:
+    toc: yes
+---
+
+
+
+```{r setup, include=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+#資料讀取.
+載入titantic file
+```{r}
+titanic <- read.csv("https://storage.googleapis.com/r_rookies/kaggle_titanic_train.csv", header=TRUE)
+```
+
+
+
+#資料外觀.
+```{r}
+str(titanic)
+```
+
+#資料清理.
+有177個遺失值
+```{r}
+summary(titanic$Age)
+```
+
+
+##載入DMwR套件.
+```{r , results='hide', message=FALSE}
+#install.packages("DMwR")
+require("DMwR")
+
+```
+
+
+##填補遺失值.
+[KNN法](https://zh.wikipedia.org/wiki/%E6%9C%80%E8%BF%91%E9%84%B0%E5%B1%85%E6%B3%95)
+```{r}
+titanic<- knnImputation(titanic,meth= "median") 
+#用k-Nearest Neighbours填補遺漏值 取中位數
+
+summary(titanic$Age)
+```
+
+
+##資料分類.
+將資料依照年齡分成五類(0-20,21-40, etc....)
+```{r}
+Age.1 <- c(1:891)
+titanic <- cbind(titanic,Age.1)
+titanic$Age.1[titanic$Age < 100] <- 5
+titanic$Age.1[titanic$Age < 80] <- 4
+titanic$Age.1[titanic$Age < 60] <- 3
+titanic$Age.1[titanic$Age < 40] <- 2
+titanic$Age.1[titanic$Age < 20] <- 1
+```
+
+
+
+#資料視覺化.
+```{r, message=FALSE}
+library(ggplot2)
+library(plotly)
+
+ggplot_bar_Age <- ggplot(titanic, aes(x = Age.1, y = Survived,z = Sex, fill = Sex)) + geom_bar(stat = "identity")
+ggplot_bar_Age_plotly <- ggplotly(ggplot_bar_Age)
+ggplot_bar_Age_plotly
+```
+
+
+#結論.
+存活者以20-40歲最多
+又女性比例在每個區間都大於男性(>80略)
